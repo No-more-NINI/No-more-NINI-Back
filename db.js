@@ -13,24 +13,29 @@ const connectionData = {
     password: PGPASSWORD,
     port: 5432,
     ssl: { rejectUnauthorized: false }
-  
+    
 }
 
 
-function check_usr(str){
-    const con = new Client(connectionData);
-    
+const con = new Client(connectionData);
+con.connect();
+
+async function check_usr(str){
+    // const con = new Client(connectionData);
     var obj = JSON.parse(str);
-    sql='SELECT id FROM m_user where email='+obj.email+' and password='+obj.password;
-    con.connect(function(err) {
-        if (err) throw err;
-        console.log("Connected!");
-        con.query(sql, function (err, result) {
-            if (err) throw err;
-            console.log("Result: " + result);
-            return result;
-        });
-    }); 
+    sql='SELECT id FROM m_user where email=\''+obj.email+'\' and password=\''+obj.pass+'\';';
+    // con.connect();
+    var x= await con.query(sql);
+    console.log(x)
+    if(x.rowCount==1){
+        sql='SELECT usrId FROM m_employee where usrId=\''+x.rows[0].id+'\';';
+        var y =await con.query(sql);
+        if(y.rowCount==1)
+            x.rows[0].type=0;
+        else
+            x.rows[0].type=1;
+    }
+    return x.rows; 
 }
 /*function update_profile(str){
     var obj=JSON.parse(str);
@@ -56,8 +61,9 @@ function toRad(Value) {
 }
 //0 = buscar feina
 //1= buscar gent per treballar
-function near_by(json) {
-    const con = new Client(connectionData);
+const MAX_DIST=1;
+async function near_by(json) {
+    // const con = new Client(connectionData);
 
     var obj=JSON.parse(json);
     if(obj.type=='0'){
@@ -65,43 +71,80 @@ function near_by(json) {
     }else{
         sql="select * from m_employee e JOIN m_user u on e.usrId=u.id";
     }
-    con.connect(function(err) {
-        if (err) throw err;
-        console.log("Connected!");
-        con.query(sql, function (err, result) {
-            if (err) throw err;
-            Object.keys(result).forEach(function(key) {
-                var row = result[key];
-                console.log(row.name)
-              });
-        });
-    }); 
+    // con.connect();
+    var x=await con.query(sql);
+    sql="select latitude,longitude from user where id="+obj.id;
+    var y=await con.query(sql);
+    var res=[];
+    if(y.longitude!=null && y.latitude!=null){
+        for(var i = 0; i < json.length; i++) {
+            var obj = json[i];
+            if(obj.latitude!=null && obj.longitude!=null){
+
+                d=calcCrow(obj.latitude,obj.longitude,y.latitude,y.longitude);
+                if(d<=MAX_DIST)
+                    res.push(obj);
+                // console.log(obj.id);
+            }
+        }
+    }
+    return res;
 }
 
 async function get_offers(json){
-    const con = new Client(connectionData);
-    console.log(json);
+    // const con = new Client(connectionData);
+    // console.log(json);
     var obj = JSON.parse(json);
     sql = 'SELECT * FROM m_offer WHERE idcomp='+obj.id+';';
-    con.connect();
+    // con.connect();
     var x= await con.query(sql);
     return x.rows;
 }
 
 async function accept_offer(json){
-    const con = new Client(connectionData);
+    // const con = new Client(connectionData);
 
-    console.log(json);
+    // console.log(json);
     var obj = JSON.parse(json);
     sql = 'INSERT INTO m_user_offer(idoffer, idcomp, iduser, acc_date) VALUES('+obj.idoffer+', '+obj.idcomp+', '+obj.iduser+', '+'current_timestamp)';// current_timestamp  --> data acutal sql
 
-    con.connect();
+    // con.connect();
     if (err) throw err;
-    console.log("Connected!");
+    // console.log("Connected!");
     var x= await con.query(sql);
     return x.rows;
 }
+async function decline_offer(json){
+    // const con = new Client(connectionData);
 
+    // console.log(json);
+    var obj = JSON.parse(json);
+    sql = 'INSERT INTO m_user_offer(idoffer, idcomp, iduser, acc_date) VALUES('+obj.idoffer+', '+obj.idcomp+', '+obj.iduser+', '+'current_timestamp)';// current_timestamp  --> data acutal sql
+
+    // con.connect();
+    if (err) throw err;
+    // console.log("Connected!");
+    var x= await con.query(sql);
+    return x.rows;
+}
+async function location(json){
+    console.log(json);
+    var obj = JSON.parse(json);
+    sql= 'select latitude,longitude from m_user where id='+obj.id+';';
+    var y= await con.query(sql);
+    if(y.rows[0].latitude!=obj.latitude || y.rows[0].longitude!=obj.longitude){
+
+        sql = 'UPDATE m_user set latitude='+obj.latitude+',longitude='+obj.longitude+' WHERE id='+obj.id+';';
+        // console.log(x);
+        var x= await con.query(sql);
+        // console.log(x);
+        return x.rowCount;
+    }
+    return 1;
+}
+exports.location = location;
 exports.get_offers = get_offers;
+exports.check_usr = check_usr;
 exports.accept_offer = accept_offer;
 exports.check_usr = check_usr;
+exports.near_by = near_by;
