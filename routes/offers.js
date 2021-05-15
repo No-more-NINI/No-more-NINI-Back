@@ -6,8 +6,7 @@ var router = express.Router();
 router.get('/', async function(req, res, next) {
     // res.setHeader('Content-Type', 'application/json');
     res.setHeader('Content-Type', 'text/plain')
-    var dat = data.get_offers(req.id);
-    //var dat = await data.get_offers('{\"id\":1}');
+    var dat = await data.get_offers('{\"id\":1}');
     res.send(dat);
     res.end();
 });
