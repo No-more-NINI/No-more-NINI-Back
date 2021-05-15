@@ -28,7 +28,7 @@ function check_usr(str){
         con.query(sql, function (err, result) {
             if (err) throw err;
             console.log("Result: " + result);
-            //return result
+            return result;
         });
     }); 
 }
@@ -115,4 +115,5 @@ function accept_offer(json){
 
 exports.get_offers = get_offers;
 exports.accept_offer = accept_offer;
+exports.check_usr = check_usr;
 //module.export={check_usr, get_offers};
