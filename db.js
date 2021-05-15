@@ -1,19 +1,25 @@
-PGHOST='localhost'
-PGUSER=process.env.USER
-PGDATABASE=process.env.USER
-PGPASSWORD=null
+PGHOST='ec2-54-72-155-238.eu-west-1.compute.amazonaws.com'
+PGUSER='ucdxvwsgshoxav'
+PGDATABASE='dekvjpb85ghung'
+PGPASSWORD='c7d356887a7d3cd0dcf82e27ed09b9a6ab53ec9bbb23de6922c6f0ed91c7ce2c'
 PGPORT=5432
 
-const bcrypt = require("bcrypt");
 
-var pg = require('pg');
-var con = pg.createConnection({
-    host: "localhost",
-    user: "yourusername",
-    password: "yourpassword"
-});
+const { Client } = require('pg');
+const connectionData = {
+    user: PGUSER,
+    host: PGHOST,
+    database: PGDATABASE,
+    password: PGPASSWORD,
+    port: 5432,
+    ssl: { rejectUnauthorized: false }
+  
+}
+
 
 function check_usr(str){
+    const con = new Client(connectionData);
+    
     var obj = JSON.parse(str);
     sql='SELECT id FROM m_user where email='+obj.email+' and password='+obj.password;
     con.connect(function(err) {
@@ -51,6 +57,8 @@ function toRad(Value) {
 //0 = buscar feina
 //1= buscar gent per treballar
 function near_by(json) {
+    const con = new Client(connectionData);
+
     var obj=JSON.parse(json);
     if(obj.type=='0'){
         sql="select * from m_company c JOIN m_user u on c.usrId=u.id";
@@ -69,4 +77,23 @@ function near_by(json) {
         });
     }); 
 }
-module.export={check_usr,};
+
+function get_offers(json){
+    const con = new Client(connectionData);
+    console.log(json);
+    var obj = JSON.parse(json);
+    sql = 'SELECT * FROM m_offer WHERE idcomp='+obj.id;
+
+    con.connect(function(err) {
+        if (err) throw err;
+        console.log("Connected!");
+        con.query(sql, function (err, result) {
+            if (err) throw err;
+            con.end();
+            return result.rows;
+        });
+    });
+}
+
+exports.get_offers=get_offers;
+//module.export={check_usr, get_offers};
