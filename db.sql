@@ -26,3 +26,14 @@ CREATE TABLE m_company(
 	image TEXT
 );
 
+create table m_user_offer (
+	idoffer int,
+	idcomp int,
+	iduser int,
+	acc_date date,
+	accepted boolean default false,
+	primary key(idoffer,idcomp,iduser,acc_date),
+	foreign key (idoffer) references m_offer(id),
+	foreign key (idcomp) references m_company(usrid),
+	foreign key (iduser) references m_user(id)
+);

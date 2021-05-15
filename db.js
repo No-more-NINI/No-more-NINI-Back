@@ -95,5 +95,24 @@ function get_offers(json){
     });
 }
 
-exports.get_offers=get_offers;
+function accept_offer(json){
+    const con = new Client(connectionData);
+
+    console.log(json);
+    var obj = JSON.parse(json);
+    sql = 'INSERT INTO m_user_offer(idoffer, idcomp, iduser, acc_date) VALUES('+obj.idoffer+', '+obj.idcomp+', '+obj.iduser+', '+'current_timestamp)';// current_timestamp  --> data acutal sql
+
+    con.connect(function(err) {
+        if (err) throw err;
+        console.log("Connected!");
+        con.query(sql, function (err, result) {
+            if (err) console.error("error!");
+            con.end();
+            return result;
+        });
+    });
+}
+
+exports.get_offers = get_offers;
+exports.accept_offer = accept_offer;
 //module.export={check_usr, get_offers};
