@@ -26,7 +26,7 @@ async function check_usr(str){
     sql='SELECT id FROM m_user where email=\''+obj.email+'\' and password=\''+obj.pass+'\';';
     // con.connect();
     var x= await con.query(sql);
-    console.log(x)
+    // console.log(x)
     if(x.rowCount==1){
         sql='SELECT usrId FROM m_employee where usrId=\''+x.rows[0].id+'\';';
         var y =await con.query(sql);
@@ -41,7 +41,9 @@ async function check_usr(str){
     var obj=JSON.parse(str);
     sql='update from m_user set '
 }*/
-function calcCrow(lat1, lon1, lat2, lon2) {
+/*function calcCrow(lat1, lon1, lat2, lon2) {
+    if(lat1==0&&lon1==0&&lat2==0&&lon2==0)
+        return 0
     var R = 6371; // km
     var dLat = toRad(lat2-lat1);
     var dLon = toRad(lon2-lon1);
@@ -53,8 +55,15 @@ function calcCrow(lat1, lon1, lat2, lon2) {
     var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
     var d = R * c;
     return d;
+}*/
+function calcCrow(latitude1, latitude2, longitude1, longitude2){
+    var dist1 = Math.sqrt(latitude1*latitude1 + longitude1*longitude1);
+    var dist2 = Math.sqrt(latitude2*latitude2 + longitude2*longitude2);
+    console.log(dist1==null);
+    if(isNaN(dist1)&&isNaN(dist2))
+        return 1;
+    return Math.abs(dist2-dist1);
 }
-
 // Converts numeric degrees to radians
 function toRad(Value) {
     return Value * Math.PI / 180;
@@ -73,21 +82,23 @@ async function near_by(json) {
     }
     // con.connect();
     var x=await con.query(sql);
-    sql="select latitude,longitude from user where id="+obj.id;
+    sql="select latitude,longitude from m_user where id="+obj.id;
     var y=await con.query(sql);
     var res=[];
-    if(y.longitude!=null && y.latitude!=null){
-        for(var i = 0; i < json.length; i++) {
-            var obj = json[i];
-            if(obj.latitude!=null && obj.longitude!=null){
-
+    //if(y.longitude!=null && y.latitude!=null){
+        for(var i = 0; i < x.rowCount; i++) {
+            var obj = x.rows[i];
+            //if(obj.latitude!=null && obj.longitude!=null){
+                console.log(obj);
                 d=calcCrow(obj.latitude,obj.longitude,y.latitude,y.longitude);
+                // d=calcCrow(10,5,30,20);
+                console.log(d);
                 if(d<=MAX_DIST)
                     res.push(obj);
                 // console.log(obj.id);
-            }
+            //}
         }
-    }
+    //}
     return res;
 }
 
@@ -128,7 +139,7 @@ async function decline_offer(json){
     return x.rows;
 }
 async function location(json){
-    console.log(json);
+    // console.log(json);
     var obj = JSON.parse(json);
     sql= 'select latitude,longitude from m_user where id='+obj.id+';';
     var y= await con.query(sql);

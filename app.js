@@ -9,6 +9,7 @@ var offersRouter = require('./routes/offers');
 var acceptoffersRouter = require('./routes/accept_offer');
 var loginRouter = require('./routes/login');
 var locationRouter = require('./routes/location');
+var nearbyRouter = require('./routes/nearby');
 
 var app = express();
 
@@ -27,6 +28,7 @@ app.use('/offers', offersRouter);
 app.use('/acceptoffers', acceptoffersRouter);
 app.use('/login', loginRouter);
 app.use('/location', locationRouter);
+app.use('/nearby', nearbyRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
